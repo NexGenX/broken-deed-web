@@ -1,0 +1,51 @@
+name: Import web export
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: import-export
+  cancel-in-progress: true
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download export
+        run: |
+          set -euo pipefail
+          if [ -f index.wasm ] && [ -f index.html ]; then
+            echo "export already present"
+            exit 0
+          fi
+          PRIMARY=https://temporary-snappy-sapphire-6jzv9et.vercel.app
+          FALLBACK=https://holy-sun-1131.zerodeploy.app
+          for f in index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js; do
+            if curl -fL --retry 3 --retry-delay 2 -o "$f" "$PRIMARY/$f"; then
+              echo "got $f from primary"
+            else
+              echo "primary missed $f, trying fallback"
+              curl -fL --retry 3 --retry-delay 2 -o "$f" "$FALLBACK/$f"
+            fi
+          done
+          ls -lh
+          test -s index.html
+          test -s index.wasm
+          test "$(wc -c < index.wasm)" -gt 30000000
+          printf '\0' > .nojekyll
+      - name: Commit export
+        run: |
+          set -euo pipefail
+          if [ ! -f index.wasm ]; then exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo nothing to commit
+            exit 0
+          fi
+          git commit -m "Add Godot 4.7.2 web export"
+          git push
