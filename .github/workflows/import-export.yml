@@ -5,6 +5,8 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  pages: write
+  id-token: write
 concurrency:
   group: import-export
   cancel-in-progress: true
@@ -17,12 +19,8 @@ jobs:
       - name: Download export
         run: |
           set -euo pipefail
-          if [ -f index.wasm ] && [ -f index.html ]; then
-            echo "export already present"
-            exit 0
-          fi
-          PRIMARY=https://temporary-snappy-sapphire-6jzv9et.vercel.app
-          FALLBACK=https://holy-sun-1131.zerodeploy.app
+          PRIMARY=https://temporary-quick-reef-yaha2t1.vercel.app
+          FALLBACK=https://white-leaf-7863.zerodeploy.app
           for f in index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js; do
             if curl -fL --retry 3 --retry-delay 2 -o "$f" "$PRIMARY/$f"; then
               echo "got $f from primary"
@@ -33,13 +31,11 @@ jobs:
           done
           ls -lh
           test -s index.html
-          test -s index.wasm
           test "$(wc -c < index.wasm)" -gt 30000000
           printf '\0' > .nojekyll
       - name: Commit export
         run: |
           set -euo pipefail
-          if [ ! -f index.wasm ]; then exit 1; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
@@ -47,5 +43,29 @@ jobs:
             echo nothing to commit
             exit 0
           fi
-          git commit -m "Add Godot 4.7.2 web export"
+          git commit -m "Refresh Godot 4.7.2 web export"
           git push
+  pages:
+    needs: import
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for wasm
+        run: |
+          test -f index.wasm || git pull --ff-only origin main
+          test -f index.wasm
+      - uses: actions/configure-pages@v5
+      - name: Stage site
+        run: |
+          mkdir _site
+          cp -a index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll _site/ 2>/dev/null || true
+          test -f _site/index.wasm
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
