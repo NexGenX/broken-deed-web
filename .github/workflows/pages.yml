@@ -1,0 +1,57 @@
+name: Deploy Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Pages site if needed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo
+            try {
+              await github.rest.repos.getPages({ owner, repo })
+              console.log('Pages already enabled')
+            } catch (e) {
+              if (e.status !== 404) throw e
+              console.log('Creating Pages site')
+              await github.request('POST /repos/{owner}/{repo}/pages', {
+                owner,
+                repo,
+                build_type: 'workflow'
+              })
+            }
+      - name: Build site
+        run: |
+          set -euo pipefail
+          mkdir _site
+          for f in index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll; do
+            if [ -f "$f" ]; then cp -a "$f" _site/; fi
+          done
+          if ls index.pck.b64* >/dev/null 2>&1; then
+            cat index.pck.b64* | tr -d '\n' | base64 -d > _site/index.pck
+            echo "decoded pck $(wc -c < _site/index.pck)"
+          fi
+          test -s _site/index.html
+          test -s _site/index.wasm
+          test "$(wc -c < _site/index.pck)" -eq 68176
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
