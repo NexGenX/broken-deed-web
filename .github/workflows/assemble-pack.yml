@@ -1,0 +1,39 @@
+name: Assemble pack parts
+on:
+  push:
+    paths:
+      - "_pack_chunks/**"
+      - ".github/workflows/assemble-pack.yml"
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble complete parts
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          root = Path('_pack_chunks')
+          for i in range(3):
+              parts = sorted(root.glob(f'{i}.*'))
+              if len(parts) < 7:
+                  print(f'part {i}: {len(parts)}/7 chunks, skip')
+                  continue
+              data = b''.join(p.read_bytes() for p in parts)
+              print(f'part {i}: {len(parts)} chunks, {len(data)} bytes')
+              if len(data) != 28000:
+                  raise SystemExit(f'bad size {i} {len(data)}')
+              Path(f'index.pck.b64.{i}').write_bytes(data)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.pck.b64.0 index.pck.b64.1 index.pck.b64.2
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "Add Vess grind pack as base64 parts."
+            git push
+          fi
