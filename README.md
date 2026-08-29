@@ -1,3 +1,5 @@
-# Broken Deed (web export)
+Broken Deed campaign web build.
 
-Godot 4.7.2 HTML5 export for iPad Safari. No threads, no SharedArrayBuffer.
+Play: https://nexgenx.github.io/broken-deed-web/
+
+index.pck is 101220 bytes. Threads off. Compatibility / WebGL2.
