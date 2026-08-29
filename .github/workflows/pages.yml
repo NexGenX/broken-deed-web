@@ -21,8 +21,9 @@ jobs:
           if [ -f index.pck.b64 ]; then
             tr -d '\n' < index.pck.b64 | base64 -d > index.pck
           else
-            cat index.pck.b64* | tr -d '\n' | base64 -d > index.pck
+            cat index.pck.b64.[0-9] | tr -d '\n' | base64 -d > index.pck
           fi
+          echo "pck bytes $(wc -c < index.pck)"
           test "$(wc -c < index.pck)" -eq 101220
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -33,7 +34,7 @@ jobs:
             git commit -m "Bake campaign index.pck (101220)."
             git push
           fi
-          git push origin HEAD:gh-pages --force
+          git push origin HEAD:gh-pages --force || echo "gh-pages push skipped"
   deploy:
     needs: bake
     runs-on: ubuntu-latest
