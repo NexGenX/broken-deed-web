@@ -15,15 +15,95 @@ jobs:
       - name: Assemble p00-p39 from quarters
         run: |
           set -euo pipefail
-          missing=0
-          for i in $(seq -w 0 39); do
-            if [ -f "_pack_chunks/_h/p${i}.0" ] && [ -f "_pack_chunks/_h/p${i}.1" ] && [ -f "_pack_chunks/_h/p${i}.2" ] && [ -f "_pack_chunks/_h/p${i}.3" ]; then
-              cat "_pack_chunks/_h/p${i}.0" "_pack_chunks/_h/p${i}.1" "_pack_chunks/_h/p${i}.2" "_pack_chunks/_h/p${i}.3" > "_pack_chunks/p${i}"
-            else
-              echo "missing quarters for p${i}"
-              missing=1
-            fi
-          done
+          python3 << 'PY'
+          from pathlib import Path
+          import hashlib, subprocess, sys
+          h = Path('_pack_chunks/_h')
+          # Known one-byte MCP transcription fixes (exact local quarters).
+          p11 = h / 'p01.1'
+          if p11.exists():
+              d = p11.read_bytes()
+              needle = b'otFEFPWEum/125TWF'
+              repl = b'otFEFPWum/125TWF'
+              if needle in d:
+                  p11.write_bytes(d.replace(needle, repl, 1))
+                  print('fixed p01.1 inserted E')
+          p12 = h / 'p01.2'
+          if p12.exists():
+              d = p12.read_bytes()
+              needle = b'lPMyfWm/KNlUVpOO'
+              repl = b'lPMyfWm/qNlUVpOO'
+              if needle in d:
+                  p12.write_bytes(d.replace(needle, repl, 1))
+                  print('fixed p01.2 K->q')
+          expect = {
+          'p00': ('693588e625de14c59ffa836434269a3f8eb056c4955d8581f19630e1434cee50', 88904),
+          'p01': ('fdffd0e632aa74a4ca89483ec3a02425b7f40efef7443d58c191dfafcebbd413', 88904),
+          'p02': ('8b82094bfb7b3e4af83ce1e6d54ad7c0c363ae7ad346f66ec9cd8d61201e54fc', 88904),
+          'p03': ('f995dd0ba04d4c298736311754f47a3a324338c1211e228010f3e2aabfa61ac0', 88904),
+          'p04': ('6693355e5a1d9fbede55cec40f1d96a8166f497786863884baac35c453a832a5', 88904),
+          'p05': ('77ed475ca336ad62573c478e21031f424aad102ef77be50537471646eb6e2808', 88904),
+          'p06': ('57529070aafcdc9c541c38a891661861e580d94d8e8ddee2536d909d9fb2d032', 88904),
+          'p07': ('f2fc09630820af07eb2304f857d7dd5f605135520ee1f28c06d331ae4383eb95', 88904),
+          'p08': ('38ef057842435196dd68d5f8d74b8eb8183a49fde829cce9207709183906c42e', 88904),
+          'p09': ('0d8dfe6fb1836de20ce219c9153601cb7e43dc59b7fdcdb652540968b5ebd7c9', 88904),
+          'p10': ('7150bba21be574b29018c58cd345784eabf98413ba54e5887235c6bdbff7157f', 88904),
+          'p11': ('23491707208e55548acedecf6b09a8602c1af0622709a7f8bbcea5426d96c8c5', 88904),
+          'p12': ('463268b8debe6f4cd1d4fe5d9a18e415c984db99c2ddc01b4556f47cc9a63669', 88904),
+          'p13': ('d5fd045a93a1812bacf2c8e40b836b66be946f9819df1062c683e69d787ad7fe', 88904),
+          'p14': ('78a47330481aa38bccfbb4de401fae34949eed20c1f2b0eb3d346a1703819adf', 88904),
+          'p15': ('99d2a668d6a2bc858310d9b7c8958655f8e2c3bd19d67ac0b2ebb59992da71e4', 88904),
+          'p16': ('85c8c72089bd5e25a5628b1864f78fc8a0a7910a158feb4de4d29e83d6c0c824', 88904),
+          'p17': ('3626a68ceb02bdbc6138e87b392b678d223db4899e96fecb7e6fbc8b36e94b60', 88904),
+          'p18': ('2ff9d56b41a85b250d47beda92272af3baa59219937f84ba1eeff7d28390b9dc', 88904),
+          'p19': ('3d3cfb0ad9e697eab985d58c785d2b4ec79fee17f979190af47d6cbfee1c8bba', 88904),
+          'p20': ('e423397ccc9fcbb6dd775c3857b1f1bc76952fc60791a2afdc71a944a04b720b', 88904),
+          'p21': ('2499bf414981841fab650934372bdbdda9e5fcfdb8663c9161bcab92473546c1', 88904),
+          'p22': ('d5338cab0c8cb405feba5e3d0fa4f00621cdf88845639a1b11b0e8a65da6b967', 88904),
+          'p23': ('bab16115e1e036dee83d44b04f47a9d8116cca0eb345b234b34f103c682ef9d5', 88904),
+          'p24': ('d75cd351e441ff64be14aeb30e3a6a2e800819c5fb66a33ca81b35e6903985f2', 88904),
+          'p25': ('6601aa927d71562fed5dba20c2dd33a302bab0d18bc5dc7c92bf8883db568daf', 88904),
+          'p26': ('1c0ef5e2fbc823041600f42c9424bcd873f9d3133347f0c37e70f399c327e1db', 88904),
+          'p27': ('741a54a5de955332bf62236fb68183950d5a0a56b9c62c53faba7a1d9c263b2a', 88904),
+          'p28': ('898b57963113aa6557ac170bc6ab489b5cf30bdbc1dbc01e32c63f8f5e229b04', 88904),
+          'p29': ('21761b28f8f8b8b5b64809c9da5672b793faa59ac7d40aa65eab22587a2f3d9e', 88904),
+          'p30': ('b61462ed25eef777333c74e4b8c3b81a19e6a1579c1dd0008ec01a04195b02fe', 88904),
+          'p31': ('5588711229e16d789b1690b3da5ce6e1222af3691c237e991d936e46bf528195', 88904),
+          'p32': ('5ffc450ee43e67be217dab77bec5718fc101373615efbfc6f8810e39081e8c3a', 88904),
+          'p33': ('665a1da9f9e0b7ec4b3145b9c65a8ca66332a6bf170cd138be2ae458dcf8417e', 88904),
+          'p34': ('ad4a18eba9a3565b1281a07af756c0eaf51d6decb8bfd66c4aef747b25c2a13b', 88904),
+          'p35': ('7a2a20c4327fa93cacb3301b4f4676f2a14d40bde8c54334544cc64c031d1d45', 88904),
+          'p36': ('2697cbefd15060827bdcfe16dbb63d6f0cef659e03cf17b0846ba46fac77f723', 88904),
+          'p37': ('924ecc790824cb3798f94bde8118721dfa90425564156442d5946c0f4eac0653', 88904),
+          'p38': ('694d4121bd39d97965effa7e75c2aafa5049097a2b7e833763bd344ae1163b3b', 88904),
+          'p39': ('63a8d034e66448c13e707f690995f4960202ca9c67e6de26294614ac69a63310', 88872),
+          }
+          missing = 0
+          for i in range(40):
+              name = f'p{i:02d}'
+              parts = [h / f'{name}.{j}' for j in range(4)]
+              if not all(p.exists() for p in parts):
+                  print('missing quarters for', name)
+                  missing += 1
+                  continue
+              data = b''.join(p.read_bytes().replace(b'\n', b'') for p in parts)
+              exp_sha, exp_len = expect[name]
+              got = hashlib.sha256(data).hexdigest()
+              dest = Path('_pack_chunks') / name
+              if len(data) != exp_len or got != exp_sha:
+                  print('BAD', name, 'len', len(data), 'sha', got)
+                  missing += 1
+                  continue
+              dest.write_bytes(data)
+              print('ok', name, exp_len, got)
+          if missing:
+              print('incomplete or mismatched', missing)
+          else:
+              raw = b''.join((Path('_pack_chunks') / f'p{i:02d}').read_bytes() for i in range(40))
+              dec = subprocess.check_output(['base64', '-d'], input=raw.replace(b'\n', b''))
+              assert len(dec) == 2667096, len(dec)
+              print('concat decodes to 2667096')
+          PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add _pack_chunks/p[0-9][0-9]
@@ -32,10 +112,4 @@ jobs:
           else
             git commit -m "Assemble vale pack chunks from quarters."
             git push
-          fi
-          if [ "$missing" -eq 0 ]; then
-            echo "assembled ascii $(cat _pack_chunks/p?? | tr -d '\n' | wc -c)"
-            test "$(cat _pack_chunks/p?? | tr -d '\n' | base64 -d | wc -c)" -eq 2667096
-          else
-            echo "not all quarters present yet"
           fi
