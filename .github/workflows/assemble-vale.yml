@@ -12,20 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Assemble p00-p39 from halves
+      - name: Assemble p00-p39 from quarters
         run: |
           set -euo pipefail
           missing=0
           for i in $(seq -w 0 39); do
-            if [ -f "_pack_chunks/_h/p${i}a" ] && [ -f "_pack_chunks/_h/p${i}b" ]; then
-              cat "_pack_chunks/_h/p${i}a" "_pack_chunks/_h/p${i}b" > "_pack_chunks/p${i}"
+            if [ -f "_pack_chunks/_h/p${i}.0" ] && [ -f "_pack_chunks/_h/p${i}.1" ] && [ -f "_pack_chunks/_h/p${i}.2" ] && [ -f "_pack_chunks/_h/p${i}.3" ]; then
+              cat "_pack_chunks/_h/p${i}.0" "_pack_chunks/_h/p${i}.1" "_pack_chunks/_h/p${i}.2" "_pack_chunks/_h/p${i}.3" > "_pack_chunks/p${i}"
             else
-              echo "missing halves for p${i}"
+              echo "missing quarters for p${i}"
               missing=1
             fi
           done
           if [ "$missing" -ne 0 ]; then
-            echo "not all halves present yet"
+            echo "not all quarters present yet"
             exit 0
           fi
           echo "assembled ascii $(cat _pack_chunks/p?? | tr -d '\n' | wc -c)"
