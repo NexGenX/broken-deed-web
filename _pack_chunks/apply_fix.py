@@ -26,6 +26,8 @@ if fix.exists() and len(b) == OLD_LEN and h != OLD:
 parts = sorted(Path("_pack_chunks").glob("boot.??"))
 if h == OLD and parts:
     raw = "".join(part.read_text().strip() for part in parts)
+    if len(raw) > 16849 and raw[16849] == "p" and raw[16840:16849] == "RIMnPBAnB":
+        raw = raw[:16849] + "v" + raw[16850:]
     import bsdiff4
     b = bytearray(bsdiff4.patch(bytes(b), base64.b64decode(raw)))
     h = hashlib.sha256(b).hexdigest()
