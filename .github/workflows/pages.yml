@@ -58,5 +58,5 @@ jobs:
             echo "gh-pages unchanged"
           else
             git -C pages commit -m "Ship Rally/Mend pack 637608."
-            git push origin gh-pages
+            git -C pages push origin gh-pages
           fi
