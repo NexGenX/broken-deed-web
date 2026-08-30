@@ -9,57 +9,41 @@ permissions:
   contents: write
 jobs:
   assemble:
+    if: github.ref == 'refs/heads/city-pck-122436'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Patch campaign b64 parts from last good commit
+      - name: Assemble slices if complete
         run: |
           set -euo pipefail
           python3 <<'PY'
-          import subprocess
           from pathlib import Path
-
-          src = '130c711d0e8bf10c8a35f6f4dfce73a03ea1950c'
-
-          def show(path):
-              return bytearray(subprocess.check_output(['git', 'show', f'{src}:{path}']))
-
-          p0 = show('index.pck.b64.0')
-          p1 = show('index.pck.b64.1')
-          p2 = show('index.pck.b64.2')
-          p3 = show('index.pck.b64.3')
-          p4 = show('index.pck.b64.4')
-          if len(p0) != 28000 or bytes(p0[19354:19355]) != b'z':
-              raise SystemExit(f'unexpected p0 {len(p0)} {bytes(p0[19354:19355])!r}')
-          p0[19354] = ord('Z')
-          if len(p2) != 28000 or bytes(p2[27474:27475]) != b'L':
-              raise SystemExit(f'unexpected p2 {len(p2)} {bytes(p2[27474:27475])!r}')
-          p2[27474] = ord('r')
-          if bytes(p3[16214:16222]) != b'UXsg7Ft4':
-              raise SystemExit(f'unexpected p3 {bytes(p3[16214:16222])!r}')
-          p3[16214] = ord('k')
-          p3[16216] = ord('8')
-          p3[16217] = ord('o')
-          p3[16218] = ord('6')
-          p3[16220] = ord('N')
-          p3[16221] = ord('8')
-          b0, b1, b2, b3, b4 = bytes(p0), bytes(p1), bytes(p2), bytes(p3), bytes(p4)
-          Path('index.pck.b64.0').write_bytes(b0)
-          Path('index.pck.b64.1').write_bytes(b1)
-          Path('index.pck.b64.2').write_bytes(b2)
-          Path('index.pck.b64.3').write_bytes(b3)
-          Path('index.pck.b64.4').write_bytes(b4)
-          Path('index.pck.b64').write_bytes(b0 + b1 + b2 + b3 + b4)
-          print(len(b0), len(b1), len(b2), len(b3), len(b4), len(b0+b1+b2+b3+b4))
+          for name in ['p00','p01','p02','p04']:
+              parts = [Path(f'_pack_chunks/_slices/{name}.{i:02d}') for i in range(19)]
+              if not all(p.exists() for p in parts):
+                  print('incomplete', name)
+                  continue
+              data = b''.join(p.read_bytes().replace(b'\n', b'') for p in parts)
+              assert len(data) == 13604, (name, len(data))
+              dest = Path(f'_pack_chunks/{name}')
+              dest.write_bytes(data)
+              print('assembled', name, len(data))
           PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.pck.b64.0 index.pck.b64.1 index.pck.b64.2 index.pck.b64.3 index.pck.b64.4 index.pck.b64
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for f in _pack_chunks/p00 _pack_chunks/p01 _pack_chunks/p02 _pack_chunks/p04; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
           if git diff --cached --quiet; then
-            echo "no changes"
+            echo no assembled changes
           else
-            git commit -m "Campaign index.pck base64 parts (101220 bytes)."
+            git commit -m "Assemble exact pack chunks from verified 716-char slices"
             git push
           fi
+      - name: Verify concat decodes to 122436
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          cat _pack_chunks/p?? | tr -d '\n' | base64 -d > /tmp/check.pck
+          test "$(wc -c < /tmp/check.pck)" -eq 122436
+          echo chunks decode to 122436

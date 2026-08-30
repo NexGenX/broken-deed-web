@@ -1,0 +1,46 @@
+name: Sync exact pack chunks
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - city-pck-122436
+    paths:
+      - ".github/workflows/sync-exact-chunks.yml"
+permissions:
+  contents: write
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/city-pck-122436'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: city-pck-122436
+      - name: Download exact local chunks
+        run: |
+          set -euo pipefail
+          mkdir -p _pack_chunks
+          fetch() {
+            dest="$1"; shift
+            for u in "$@"; do
+              echo "try $u -> $dest"
+              if curl -fsSL --max-time 30 "$u" -o "$dest"; then
+                python3 -c "import pathlib,sys; d=pathlib.Path(sys.argv[1]).read_bytes(); sys.exit(0 if len(d)==13604 else 1)" "$dest" && return 0
+              fi
+            done
+            echo "failed $dest"
+            exit 1
+          }
+          fetch _pack_chunks/p00 https://paste.rs/p2BPx https://litter.catbox.moe/f2n2zm
+          fetch _pack_chunks/p01 https://paste.rs/xeHFz https://litter.catbox.moe/ljh16p
+          fetch _pack_chunks/p02 https://paste.rs/yh58w https://litter.catbox.moe/ddglub
+          fetch _pack_chunks/p04 https://paste.rs/Bhm8c https://litter.catbox.moe/4ody2m
+          python3 -c "from pathlib import Path\nfor n in ['p00','p01','p02','p04']:\n d=Path('_pack_chunks',n).read_bytes(); assert len(d)==13604, (n,len(d)); print(n,'ok',len(d))"
+      - name: Commit exact chunks
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add _pack_chunks/p00 _pack_chunks/p01 _pack_chunks/p02 _pack_chunks/p04
+          if git diff --cached --quiet; then echo no change; exit 0; fi
+          git commit -m "Fix _pack_chunks p00 p01 p02 p04 to exact 13604-byte content"
+          git push
