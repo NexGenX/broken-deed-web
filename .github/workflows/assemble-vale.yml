@@ -19,23 +19,32 @@ jobs:
           from pathlib import Path
           import hashlib, subprocess, sys
           h = Path('_pack_chunks/_h')
-          # Known one-byte MCP transcription fixes (exact local quarters).
-          p11 = h / 'p01.1'
-          if p11.exists():
-              d = p11.read_bytes()
-              needle = b'otFEFPWEum/125TWF'
-              repl = b'otFEFPWum/125TWF'
-              if needle in d:
-                  p11.write_bytes(d.replace(needle, repl, 1))
-                  print('fixed p01.1 inserted E')
-          p12 = h / 'p01.2'
-          if p12.exists():
-              d = p12.read_bytes()
-              needle = b'lPMyfWm/KNlUVpOO'
-              repl = b'lPMyfWm/qNlUVpOO'
-              if needle in d:
-                  p12.write_bytes(d.replace(needle, repl, 1))
-                  print('fixed p01.2 K->q')
+          def fix(name, pairs):
+              p = h / name
+              if not p.exists():
+                  return
+              d = p.read_bytes()
+              for needle, repl, label in pairs:
+                  if needle in d:
+                      d = d.replace(needle, repl, 1)
+                      print('fixed', name, label)
+              p.write_bytes(d)
+          fix('p01.1', [(b'otFEFPWEum/125TWF', b'otFEFPWum/125TWF', 'inserted E')])
+          fix('p01.2', [(b'lPMyfWm/KNlUVpOO', b'lPMyfWm/qNlUVpOO', 'K->q')])
+          p20 = h / 'p02.0'
+          if p20.exists():
+              d = p20.read_bytes()
+              for needle, repl, label in [
+                  (b'IqfICUf69LNMRJ3zM7p', b'IqfICUf69rNMRJ3zM7p', 'L->r'),
+                  (b'bOGk38vkC2NdalwpqU1D44', b'bOGk38vkC3NdalwpqU1D44', '2->3'),
+              ]:
+                  if needle in d:
+                      d = d.replace(needle, repl, 1)
+                      print('fixed p02.0', label)
+              if d.endswith(b'ma') and len(d) == 22228:
+                  d = d[:-2]
+                  print('fixed p02.0 trailing ma')
+              p20.write_bytes(d)
           expect = {
           'p00': ('693588e625de14c59ffa836434269a3f8eb056c4955d8581f19630e1434cee50', 88904),
           'p01': ('fdffd0e632aa74a4ca89483ec3a02425b7f40efef7443d58c191dfafcebbd413', 88904),
