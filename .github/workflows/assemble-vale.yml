@@ -24,18 +24,18 @@ jobs:
               missing=1
             fi
           done
-          if [ "$missing" -ne 0 ]; then
-            echo "not all quarters present yet"
-            exit 0
-          fi
-          echo "assembled ascii $(cat _pack_chunks/p?? | tr -d '\n' | wc -c)"
-          test "$(cat _pack_chunks/p?? | tr -d '\n' | base64 -d | wc -c)" -eq 2667096
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add _pack_chunks/p[0-9][0-9]
           if git diff --cached --quiet; then
-            echo "chunks already assembled"
+            echo "no new assembled chunks"
           else
-            git commit -m "Assemble exact vale pack chunks p00-p39 (2667096)."
+            git commit -m "Assemble vale pack chunks from quarters."
             git push
+          fi
+          if [ "$missing" -eq 0 ]; then
+            echo "assembled ascii $(cat _pack_chunks/p?? | tr -d '\n' | wc -c)"
+            test "$(cat _pack_chunks/p?? | tr -d '\n' | base64 -d | wc -c)" -eq 2667096
+          else
+            echo "not all quarters present yet"
           fi
