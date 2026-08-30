@@ -31,8 +31,8 @@ jobs:
           fi
           python3 _pack_chunks/apply_fix.py
           echo "pck bytes $(wc -c < index.pck)"
-          test "$(wc -c < index.pck)" -eq 611416
-          test "$(sha256sum index.pck | awk '{print $1}')" = "e4548a17ada52ee914678453bfcfaaf0b773e727c01599a6fd61bbc81a54bfa2"
+          test "$(wc -c < index.pck)" -eq 615240
+          test "$(sha256sum index.pck | awk '{print $1}')" = "dc0a602f407e78014526a8fa1732c0e0d2a0ba9a27eef1ed66732733952d71e6"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck
@@ -66,8 +66,8 @@ jobs:
             cat index.pck.b64.[0-9]* | tr -d '\n' | base64 -d > index.pck
           fi
           python3 _pack_chunks/apply_fix.py
-          test "$(wc -c < index.pck)" -eq 611416
-          test "$(sha256sum index.pck | awk '{print $1}')" = "e4548a17ada52ee914678453bfcfaaf0b773e727c01599a6fd61bbc81a54bfa2"
+          test "$(wc -c < index.pck)" -eq 615240
+          test "$(sha256sum index.pck | awk '{print $1}')" = "dc0a602f407e78014526a8fa1732c0e0d2a0ba9a27eef1ed66732733952d71e6"
           cp -a index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll _site/ 2>/dev/null || true
           test -f _site/index.html
           test -f _site/index.wasm
