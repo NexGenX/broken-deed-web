@@ -5,8 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  pages: write
-  id-token: write
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -32,28 +30,31 @@ jobs:
             git commit -m "Bake next-cut index.pck (635736)."
             git push
           fi
-  deploy:
+  publish-gh-pages:
     needs: bake
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build site
+        with:
+          fetch-depth: 0
+      - name: Publish site to gh-pages
         run: |
-          mkdir -p _site
+          set -euo pipefail
           python3 -m pip install --user bsdiff4
           python3 _pack_chunks/apply_fix.py
           test "$(wc -c < index.pck)" -eq 635736
           test "$(sha256sum index.pck | awk '{print $1}')" = "c1f6ca51b9631633ca80918c5e11bed27d8fc5fc415c0e9e84c166650e063844"
-          cp -a index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll _site/
-          test -f _site/index.html
-          test -f _site/index.wasm
-          test "$(wc -c < _site/index.pck)" -eq 635736
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          mkdir -p /tmp/site
+          cp -a index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll /tmp/site/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages
+          git checkout gh-pages
+          cp -a /tmp/site/.
+          git add -A
+          if git diff --cached --quiet; then
+            echo "gh-pages unchanged"
+          else
+            git commit -m "Ship next-cut pack 635736."
+            git push origin gh-pages
+          fi
