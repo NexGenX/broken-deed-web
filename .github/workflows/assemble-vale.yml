@@ -1,0 +1,41 @@
+name: Assemble vale pack chunks
+on:
+  push:
+    paths:
+      - "_pack_chunks/_h/**"
+      - ".github/workflows/assemble-vale.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble p00-p39 from halves
+        run: |
+          set -euo pipefail
+          missing=0
+          for i in $(seq -w 0 39); do
+            if [ -f "_pack_chunks/_h/p${i}a" ] && [ -f "_pack_chunks/_h/p${i}b" ]; then
+              cat "_pack_chunks/_h/p${i}a" "_pack_chunks/_h/p${i}b" > "_pack_chunks/p${i}"
+            else
+              echo "missing halves for p${i}"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "not all halves present yet"
+            exit 0
+          fi
+          echo "assembled ascii $(cat _pack_chunks/p?? | tr -d '\n' | wc -c)"
+          test "$(cat _pack_chunks/p?? | tr -d '\n' | base64 -d | wc -c)" -eq 2667096
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _pack_chunks/p[0-9][0-9]
+          if git diff --cached --quiet; then
+            echo "chunks already assembled"
+          else
+            git commit -m "Assemble exact vale pack chunks p00-p39 (2667096)."
+            git push
+          fi
