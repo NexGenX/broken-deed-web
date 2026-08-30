@@ -22,7 +22,7 @@ parts = sorted(Path("_pack_chunks").glob("u????"))
 if parts and sha(b) == OLD and len(b) == OLD_LEN:
     import bsdiff4
     raw = "".join(part.read_text().replace("\n", "").replace("\r", "") for part in parts)
-    raw = raw.replace("UfArLJ9DHpamy", "UfArLJ9DHpAmy")
+    raw = raw.replace("UfArLJ9DHpAmy", "UfArLJ9DHpamy")
     b = bsdiff4.patch(bytes(b), base64.b64decode(raw))
     p.write_bytes(b)
 
