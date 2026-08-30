@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bake index.pck 122436
+      - name: Bake index.pck 2667096
         run: |
           set -euo pipefail
           if ls _pack_chunks/p?? >/dev/null 2>&1; then
@@ -26,14 +26,14 @@ jobs:
             cat index.pck.b64.[0-9]* | tr -d '\n' | base64 -d > index.pck
           fi
           echo "pck bytes $(wc -c < index.pck)"
-          test "$(wc -c < index.pck)" -eq 122436
+          test "$(wc -c < index.pck)" -eq 2667096
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck
           if git diff --cached --quiet; then
-            echo "already 122436"
+            echo "already 2667096"
           else
-            git commit -m "Bake campaign index.pck (122436)."
+            git commit -m "Bake campaign index.pck (2667096)."
             git push
           fi
           git push origin HEAD:gh-pages --force || echo "gh-pages push skipped"
@@ -55,11 +55,11 @@ jobs:
           elif ls index.pck.b64.[0-9]* >/dev/null 2>&1; then
             cat index.pck.b64.[0-9]* | tr -d '\n' | base64 -d > index.pck
           fi
-          test "$(wc -c < index.pck)" -eq 122436
+          test "$(wc -c < index.pck)" -eq 2667096
           cp -a index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll _site/ 2>/dev/null || true
           test -f _site/index.html
           test -f _site/index.wasm
-          test "$(wc -c < _site/index.pck)" -eq 122436
+          test "$(wc -c < _site/index.pck)" -eq 2667096
       - uses: actions/configure-pages@v5
         continue-on-error: true
       - uses: actions/upload-pages-artifact@v3
