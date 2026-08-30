@@ -28,7 +28,22 @@ jobs:
           else
             cat index.pck.b64.[0-9]* | tr -d '\n' | base64 -d > index.pck
           fi
+          if [ -f _pack_chunks/pck.fix ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.pck')
+          b = bytearray(p.read_bytes())
+          for line in Path('_pack_chunks/pck.fix').read_text().splitlines():
+              if not line.strip():
+                  continue
+              off, hx = line.split()
+              b[int(off)] = int(hx, 16)
+          p.write_bytes(b)
+          PY
+          fi
           echo "pck bytes $(wc -c < index.pck)"
+          test "$(wc -c < index.pck)" -eq 610968
+          test "$(sha256sum index.pck | awk '{print $1}')" = "115d77a22037639cb9e59749ab9b5089cdb50ab1e7bb2f012daabc1b1c81460a"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck
@@ -60,6 +75,21 @@ jobs:
           elif ls index.pck.b64.[0-9]* >/dev/null 2>&1; then
             cat index.pck.b64.[0-9]* | tr -d '\n' | base64 -d > index.pck
           fi
+          if [ -f _pack_chunks/pck.fix ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.pck')
+          b = bytearray(p.read_bytes())
+          for line in Path('_pack_chunks/pck.fix').read_text().splitlines():
+              if not line.strip():
+                  continue
+              off, hx = line.split()
+              b[int(off)] = int(hx, 16)
+          p.write_bytes(b)
+          PY
+          fi
+          test "$(wc -c < index.pck)" -eq 610968
+          test "$(sha256sum index.pck | awk '{print $1}')" = "115d77a22037639cb9e59749ab9b5089cdb50ab1e7bb2f012daabc1b1c81460a"
           cp -a index.html index.js index.wasm index.pck index.png index.icon.png index.apple-touch-icon.png index.audio.worklet.js index.audio.position.worklet.js .nojekyll _site/ 2>/dev/null || true
           test -f _site/index.html
           test -f _site/index.wasm
