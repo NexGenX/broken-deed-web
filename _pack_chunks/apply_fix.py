@@ -18,17 +18,11 @@ b = p.read_bytes() if p.exists() else b""
 if sha(b) == TARGET and len(b) == TARGET_LEN:
     raise SystemExit(0)
 
-parts = sorted(Path("_pack_chunks").glob("n??"))
+parts = sorted(Path("_pack_chunks").glob("t????"))
 if parts and sha(b) == OLD and len(b) == OLD_LEN:
     import bsdiff4
     raw = "".join(part.read_text().replace("\n", "").replace("\r", "") for part in parts)
     b = bsdiff4.patch(bytes(b), base64.b64decode(raw))
-    p.write_bytes(b)
-
-cparts = sorted(Path("_pack_chunks").glob("c??"))
-if (sha(b) != TARGET or len(b) != TARGET_LEN) and cparts:
-    raw = "".join(part.read_text().replace("\n", "").replace("\r", "") for part in cparts)
-    b = base64.b64decode(raw)
     p.write_bytes(b)
 
 if sha(b) != TARGET or len(b) != TARGET_LEN:
