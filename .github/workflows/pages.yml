@@ -18,12 +18,14 @@ jobs:
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           python3 _pack_chunks/apply_fix.py
+          sed -i 's/"index.pck":635736/"index.pck":637608/' index.html
           echo "pck bytes $(wc -c < index.pck)"
           test "$(wc -c < index.pck)" -eq 637608
           test "$(sha256sum index.pck | awk '{print $1}')" = "56f9f47e411bb8135d64441e52719304e7dff943857856bf5f88755f43639768"
+          grep -q 'index.pck":637608' index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.pck
+          git add index.pck index.html
           if git diff --cached --quiet; then
             echo "pck unchanged"
           else
@@ -46,6 +48,7 @@ jobs:
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           (cd main && python3 _pack_chunks/apply_fix.py)
+          sed -i 's/"index.pck":635736/"index.pck":637608/' main/index.html
           test "$(wc -c < main/index.pck)" -eq 637608
           test "$(sha256sum main/index.pck | awk '{print $1}')" = "56f9f47e411bb8135d64441e52719304e7dff943857856bf5f88755f43639768"
           cp -f main/index.html main/index.pck pages/
