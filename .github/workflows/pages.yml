@@ -13,23 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bake walk-vale index.pck
+      - name: Bake roster-folk index.pck
         run: |
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           python3 _pack_chunks/apply_fix.py
-          sed -i 's/"index.pck":635736/"index.pck":647176/; s/"index.pck":637608/"index.pck":647176/; s/"index.pck":637560/"index.pck":647176/; s/"index.pck":640120/"index.pck":647176/; s/"index.pck":640312/"index.pck":647176/; s/"index.pck":640488/"index.pck":647176/; s/"index.pck":644904/"index.pck":647176/; s/"index.pck":646968/"index.pck":647176/' index.html
+          sed -i 's/"index.pck":635736/"index.pck":652616/; s/"index.pck":637608/"index.pck":652616/; s/"index.pck":637560/"index.pck":652616/; s/"index.pck":640120/"index.pck":652616/; s/"index.pck":640312/"index.pck":652616/; s/"index.pck":640488/"index.pck":652616/; s/"index.pck":644904/"index.pck":652616/; s/"index.pck":646968/"index.pck":652616/; s/"index.pck":647176/"index.pck":652616/' index.html
           echo "pck bytes $(wc -c < index.pck)"
-          test "$(wc -c < index.pck)" -eq 647176
-          test "$(sha256sum index.pck | awk '{print $1}')" = "7a029bf7c4bc8d89d669b57db7e60f408f5aae229a0f65153c7bfcb118ebe6ba"
-          grep -q 'index.pck":647176' index.html
+          test "$(wc -c < index.pck)" -eq 652616
+          test "$(sha256sum index.pck | awk '{print $1}')" = "a868f821baf4729a19e86d5ac2dd3320ac47e83738ed1ee195512ee6dd4b3a1f"
+          grep -q 'index.pck":652616' index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck index.html
           if git diff --cached --quiet; then
             echo "pck unchanged"
           else
-            git commit -m "Bake walk-vale index.pck (647176)."
+            git commit -m "Bake roster-folk index.pck (652616)."
             git push
           fi
   publish-gh-pages:
@@ -48,18 +48,18 @@ jobs:
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           (cd main && python3 _pack_chunks/apply_fix.py)
-          sed -i 's/"index.pck":635736/"index.pck":647176/; s/"index.pck":637608/"index.pck":647176/; s/"index.pck":637560/"index.pck":647176/; s/"index.pck":640120/"index.pck":647176/; s/"index.pck":640312/"index.pck":647176/; s/"index.pck":640488/"index.pck":647176/; s/"index.pck":644904/"index.pck":647176/; s/"index.pck":646968/"index.pck":647176/' main/index.html
-          test "$(wc -c < main/index.pck)" -eq 647176
-          test "$(sha256sum main/index.pck | awk '{print $1}')" = "7a029bf7c4bc8d89d669b57db7e60f408f5aae229a0f65153c7bfcb118ebe6ba"
+          sed -i 's/"index.pck":635736/"index.pck":652616/; s/"index.pck":637608/"index.pck":652616/; s/"index.pck":637560/"index.pck":652616/; s/"index.pck":640120/"index.pck":652616/; s/"index.pck":640312/"index.pck":652616/; s/"index.pck":640488/"index.pck":652616/; s/"index.pck":644904/"index.pck":652616/; s/"index.pck":646968/"index.pck":652616/; s/"index.pck":647176/"index.pck":652616/' main/index.html
+          test "$(wc -c < main/index.pck)" -eq 652616
+          test "$(sha256sum main/index.pck | awk '{print $1}')" = "a868f821baf4729a19e86d5ac2dd3320ac47e83738ed1ee195512ee6dd4b3a1f"
           cp -f main/index.html main/index.pck pages/
-          grep -q 'index.pck":647176' pages/index.html
-          test "$(wc -c < pages/index.pck)" -eq 647176
+          grep -q 'index.pck":652616' pages/index.html
+          test "$(wc -c < pages/index.pck)" -eq 652616
           git -C pages config user.name "github-actions[bot]"
           git -C pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C pages add index.html index.pck
           if git -C pages diff --cached --quiet; then
             echo "gh-pages unchanged"
           else
-            git -C pages commit -m "Ship walk-vale pack 647176."
+            git -C pages commit -m "Ship roster-folk pack 652616."
             git -C pages push origin gh-pages
           fi
