@@ -1,10 +1,10 @@
 from pathlib import Path
 import hashlib
 
-OLD = "3d3d5843d58ec0da3fbbe2f6d1dc22948e915a2e33ad40a1f78ed24339480678"
-OLD_LEN = 640488
-TARGET = "3919f379467cf911f0d695a3eec8f25a2120341c65af80ff678237795c701ddd"
-TARGET_LEN = 644904
+OLD = "3919f379467cf911f0d695a3eec8f25a2120341c65af80ff678237795c701ddd"
+OLD_LEN = 644904
+TARGET = "2581fe92fa461b9910a7481aa5b07b845608579cd7ba052bf03d1cb02bcab783"
+TARGET_LEN = 646968
 
 
 def sha(data: bytes) -> str:
@@ -16,7 +16,7 @@ b = p.read_bytes() if p.exists() else b""
 if sha(b) == TARGET and len(b) == TARGET_LEN:
     raise SystemExit(0)
 
-parts = sorted(Path("_pack_chunks").glob("j????"))
+parts = sorted(Path("_pack_chunks").glob("k????"))
 if parts and sha(b) == OLD and len(b) == OLD_LEN:
     import bsdiff4
     raw = "".join(part.read_text().replace("\n", "").replace("\r", "") for part in parts)
