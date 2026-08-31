@@ -13,23 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bake roster-panel index.pck
+      - name: Bake no-post-header index.pck
         run: |
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           python3 _pack_chunks/apply_fix.py
-          sed -i 's/"index.pck":635736/"index.pck":652984/; s/"index.pck":637608/"index.pck":652984/; s/"index.pck":637560/"index.pck":652984/; s/"index.pck":640120/"index.pck":652984/; s/"index.pck":640312/"index.pck":652984/; s/"index.pck":640488/"index.pck":652984/; s/"index.pck":644904/"index.pck":652984/; s/"index.pck":646968/"index.pck":652984/; s/"index.pck":647176/"index.pck":652984/; s/"index.pck":652616/"index.pck":652984/' index.html
+          sed -i 's/"index.pck":635736/"index.pck":652792/; s/"index.pck":637608/"index.pck":652792/; s/"index.pck":637560/"index.pck":652792/; s/"index.pck":640120/"index.pck":652792/; s/"index.pck":640312/"index.pck":652792/; s/"index.pck":640488/"index.pck":652792/; s/"index.pck":644904/"index.pck":652792/; s/"index.pck":646968/"index.pck":652792/; s/"index.pck":647176/"index.pck":652792/; s/"index.pck":652616/"index.pck":652792/; s/"index.pck":652984/"index.pck":652792/' index.html
           echo "pck bytes $(wc -c < index.pck)"
-          test "$(wc -c < index.pck)" -eq 652984
-          test "$(sha256sum index.pck | awk '{print $1}')" = "c857bd767d3e7ac08dae2738f3c5baaf9decf8d602997c2a74864ae0da5a4a2b"
-          grep -q 'index.pck":652984' index.html
+          test "$(wc -c < index.pck)" -eq 652792
+          test "$(sha256sum index.pck | awk '{print $1}')" = "d036220ea3862add1181bdbe70cb6092a862a3af0793772b0a775062cb38e7c7"
+          grep -q 'index.pck":652792' index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck index.html
           if git diff --cached --quiet; then
             echo "pck unchanged"
           else
-            git commit -m "Bake roster-panel index.pck (652984)."
+            git commit -m "Bake no-post-header index.pck (652792)."
             git push
           fi
   publish-gh-pages:
@@ -48,18 +48,18 @@ jobs:
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           (cd main && python3 _pack_chunks/apply_fix.py)
-          sed -i 's/"index.pck":635736/"index.pck":652984/; s/"index.pck":637608/"index.pck":652984/; s/"index.pck":637560/"index.pck":652984/; s/"index.pck":640120/"index.pck":652984/; s/"index.pck":640312/"index.pck":652984/; s/"index.pck":640488/"index.pck":652984/; s/"index.pck":644904/"index.pck":652984/; s/"index.pck":646968/"index.pck":652984/; s/"index.pck":647176/"index.pck":652984/; s/"index.pck":652616/"index.pck":652984/' main/index.html
-          test "$(wc -c < main/index.pck)" -eq 652984
-          test "$(sha256sum main/index.pck | awk '{print $1}')" = "c857bd767d3e7ac08dae2738f3c5baaf9decf8d602997c2a74864ae0da5a4a2b"
+          sed -i 's/"index.pck":635736/"index.pck":652792/; s/"index.pck":637608/"index.pck":652792/; s/"index.pck":637560/"index.pck":652792/; s/"index.pck":640120/"index.pck":652792/; s/"index.pck":640312/"index.pck":652792/; s/"index.pck":640488/"index.pck":652792/; s/"index.pck":644904/"index.pck":652792/; s/"index.pck":646968/"index.pck":652792/; s/"index.pck":647176/"index.pck":652792/; s/"index.pck":652616/"index.pck":652792/; s/"index.pck":652984/"index.pck":652792/' main/index.html
+          test "$(wc -c < main/index.pck)" -eq 652792
+          test "$(sha256sum main/index.pck | awk '{print $1}')" = "d036220ea3862add1181bdbe70cb6092a862a3af0793772b0a775062cb38e7c7"
           cp -f main/index.html main/index.pck pages/
-          grep -q 'index.pck":652984' pages/index.html
-          test "$(wc -c < pages/index.pck)" -eq 652984
+          grep -q 'index.pck":652792' pages/index.html
+          test "$(wc -c < pages/index.pck)" -eq 652792
           git -C pages config user.name "github-actions[bot]"
           git -C pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C pages add index.html index.pck
           if git -C pages diff --cached --quiet; then
             echo "gh-pages unchanged"
           else
-            git -C pages commit -m "Ship roster-panel pack 652984."
+            git -C pages commit -m "Ship no-post-header pack 652792."
             git -C pages push origin gh-pages
           fi
