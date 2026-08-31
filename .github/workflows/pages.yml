@@ -13,23 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bake vale pad-arrows index.pck
+      - name: Bake banner jab index.pck
         run: |
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           python3 _pack_chunks/apply_fix.py
-          sed -i 's/"index.pck":635736/"index.pck":640312/; s/"index.pck":637608/"index.pck":640312/; s/"index.pck":637560/"index.pck":640312/; s/"index.pck":640120/"index.pck":640312/' index.html
+          sed -i 's/"index.pck":635736/"index.pck":640488/; s/"index.pck":637608/"index.pck":640488/; s/"index.pck":637560/"index.pck":640488/; s/"index.pck":640120/"index.pck":640488/; s/"index.pck":640312/"index.pck":640488/' index.html
           echo "pck bytes $(wc -c < index.pck)"
-          test "$(wc -c < index.pck)" -eq 640312
-          test "$(sha256sum index.pck | awk '{print $1}')" = "64c812a617872271cac1e892a90fc594ec6da60838a2def4ba206b8868ecc245"
-          grep -q 'index.pck":640312' index.html
+          test "$(wc -c < index.pck)" -eq 640488
+          test "$(sha256sum index.pck | awk '{print $1}')" = "3d3d5843d58ec0da3fbbe2f6d1dc22948e915a2e33ad40a1f78ed24339480678"
+          grep -q 'index.pck":640488' index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck index.html
           if git diff --cached --quiet; then
             echo "pck unchanged"
           else
-            git commit -m "Bake vale pad-arrows index.pck (640312)."
+            git commit -m "Bake banner jab index.pck (640488)."
             git push
           fi
   publish-gh-pages:
@@ -48,18 +48,18 @@ jobs:
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           (cd main && python3 _pack_chunks/apply_fix.py)
-          sed -i 's/"index.pck":635736/"index.pck":640312/; s/"index.pck":637608/"index.pck":640312/; s/"index.pck":637560/"index.pck":640312/; s/"index.pck":640120/"index.pck":640312/' main/index.html
-          test "$(wc -c < main/index.pck)" -eq 640312
-          test "$(sha256sum main/index.pck | awk '{print $1}')" = "64c812a617872271cac1e892a90fc594ec6da60838a2def4ba206b8868ecc245"
+          sed -i 's/"index.pck":635736/"index.pck":640488/; s/"index.pck":637608/"index.pck":640488/; s/"index.pck":637560/"index.pck":640488/; s/"index.pck":640120/"index.pck":640488/; s/"index.pck":640312/"index.pck":640488/' main/index.html
+          test "$(wc -c < main/index.pck)" -eq 640488
+          test "$(sha256sum main/index.pck | awk '{print $1}')" = "3d3d5843d58ec0da3fbbe2f6d1dc22948e915a2e33ad40a1f78ed24339480678"
           cp -f main/index.html main/index.pck pages/
-          grep -q 'index.pck":640312' pages/index.html
-          test "$(wc -c < pages/index.pck)" -eq 640312
+          grep -q 'index.pck":640488' pages/index.html
+          test "$(wc -c < pages/index.pck)" -eq 640488
           git -C pages config user.name "github-actions[bot]"
           git -C pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C pages add index.html index.pck
           if git -C pages diff --cached --quiet; then
             echo "gh-pages unchanged"
           else
-            git -C pages commit -m "Ship vale pad-arrows pack 640312."
+            git -C pages commit -m "Ship banner jab pack 640488."
             git -C pages push origin gh-pages
           fi
