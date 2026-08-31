@@ -42,18 +42,18 @@ jobs:
               name = f"k{i:04d}"
               a = asm / f"{name}.a"
               b = asm / f"{name}.b"
-              if a.exists() and b.exists():
-                  content = a.read_text().strip() + b.read_text().strip()
-              elif b.exists():
-                  existing = api("GET", f"/contents/_pack_chunks/{name}?ref=main")
-                  if not existing:
-                      raise SystemExit(f"missing existing {name}")
-                  prefix = base64.b64decode(existing["content"]).decode().strip()
-                  content = prefix + b.read_text().strip()
-              else:
+              if not (a.exists() and b.exists()):
                   print("skip", name)
                   continue
+              content = a.read_text().strip() + b.read_text().strip()
+              if len(content) != 36000:
+                  raise SystemExit(f"bad length {name} {len(content)}")
               existing = api("GET", f"/contents/_pack_chunks/{name}?ref=main")
+              if existing:
+                  cur = base64.b64decode(existing["content"]).decode().strip()
+                  if cur == content:
+                      print("already ok", name)
+                      continue
               payload = {
                   "message": f"Add {name} vale-home-keep pack slice.",
                   "content": base64.b64encode(content.encode("ascii")).decode(),
