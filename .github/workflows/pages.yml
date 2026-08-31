@@ -13,23 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bake vale-ease index.pck
+      - name: Bake home-keep index.pck
         run: |
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           python3 _pack_chunks/apply_fix.py
-          sed -i 's/"index.pck":635736/"index.pck":644904/; s/"index.pck":637608/"index.pck":644904/; s/"index.pck":637560/"index.pck":644904/; s/"index.pck":640120/"index.pck":644904/; s/"index.pck":640312/"index.pck":644904/; s/"index.pck":640488/"index.pck":644904/' index.html
+          sed -i 's/"index.pck":635736/"index.pck":646968/; s/"index.pck":637608/"index.pck":646968/; s/"index.pck":637560/"index.pck":646968/; s/"index.pck":640120/"index.pck":646968/; s/"index.pck":640312/"index.pck":646968/; s/"index.pck":640488/"index.pck":646968/; s/"index.pck":644904/"index.pck":646968/' index.html
           echo "pck bytes $(wc -c < index.pck)"
-          test "$(wc -c < index.pck)" -eq 644904
-          test "$(sha256sum index.pck | awk '{print $1}')" = "3919f379467cf911f0d695a3eec8f25a2120341c65af80ff678237795c701ddd"
-          grep -q 'index.pck":644904' index.html
+          test "$(wc -c < index.pck)" -eq 646968
+          test "$(sha256sum index.pck | awk '{print $1}')" = "2581fe92fa461b9910a7481aa5b07b845608579cd7ba052bf03d1cb02bcab783"
+          grep -q 'index.pck":646968' index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.pck index.html
           if git diff --cached --quiet; then
             echo "pck unchanged"
           else
-            git commit -m "Bake vale-ease index.pck (644904)."
+            git commit -m "Bake home-keep index.pck (646968)."
             git push
           fi
   publish-gh-pages:
@@ -48,18 +48,18 @@ jobs:
           set -euo pipefail
           python3 -m pip install --user bsdiff4
           (cd main && python3 _pack_chunks/apply_fix.py)
-          sed -i 's/"index.pck":635736/"index.pck":644904/; s/"index.pck":637608/"index.pck":644904/; s/"index.pck":637560/"index.pck":644904/; s/"index.pck":640120/"index.pck":644904/; s/"index.pck":640312/"index.pck":644904/; s/"index.pck":640488/"index.pck":644904/' main/index.html
-          test "$(wc -c < main/index.pck)" -eq 644904
-          test "$(sha256sum main/index.pck | awk '{print $1}')" = "3919f379467cf911f0d695a3eec8f25a2120341c65af80ff678237795c701ddd"
+          sed -i 's/"index.pck":635736/"index.pck":646968/; s/"index.pck":637608/"index.pck":646968/; s/"index.pck":637560/"index.pck":646968/; s/"index.pck":640120/"index.pck":646968/; s/"index.pck":640312/"index.pck":646968/; s/"index.pck":640488/"index.pck":646968/; s/"index.pck":644904/"index.pck":646968/' main/index.html
+          test "$(wc -c < main/index.pck)" -eq 646968
+          test "$(sha256sum main/index.pck | awk '{print $1}')" = "2581fe92fa461b9910a7481aa5b07b845608579cd7ba052bf03d1cb02bcab783"
           cp -f main/index.html main/index.pck pages/
-          grep -q 'index.pck":644904' pages/index.html
-          test "$(wc -c < pages/index.pck)" -eq 644904
+          grep -q 'index.pck":646968' pages/index.html
+          test "$(wc -c < pages/index.pck)" -eq 646968
           git -C pages config user.name "github-actions[bot]"
           git -C pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C pages add index.html index.pck
           if git -C pages diff --cached --quiet; then
             echo "gh-pages unchanged"
           else
-            git -C pages commit -m "Ship vale-ease pack 644904."
+            git -C pages commit -m "Ship home-keep pack 646968."
             git -C pages push origin gh-pages
           fi
