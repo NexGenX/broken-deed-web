@@ -1,0 +1,66 @@
+name: assemble-k-slices
+on:
+  push:
+    paths:
+      - "_pack_chunks/_asm/**"
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble k slices via Contents API
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 <<'PY'
+          import base64, json, os, pathlib, urllib.error, urllib.request
+          token = os.environ["GH_TOKEN"]
+          owner, repo = "NexGenX", "broken-deed-web"
+          def api(method, path, data=None):
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{owner}/{repo}{path}",
+                  data=None if data is None else json.dumps(data).encode(),
+                  method=method,
+                  headers={
+                      "Authorization": f"Bearer {token}",
+                      "Accept": "application/vnd.github+json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(req) as r:
+                      return json.load(r)
+              except urllib.error.HTTPError as e:
+                  body = e.read().decode()
+                  if e.code == 404:
+                      return None
+                  raise SystemExit(f"{method} {path} {e.code} {body}")
+          asm = pathlib.Path("_pack_chunks/_asm")
+          for i in range(7):
+              name = f"k{i:04d}"
+              a = asm / f"{name}.a"
+              b = asm / f"{name}.b"
+              if a.exists() and b.exists():
+                  content = a.read_text().strip() + b.read_text().strip()
+              elif b.exists():
+                  existing = api("GET", f"/contents/_pack_chunks/{name}?ref=main")
+                  if not existing:
+                      raise SystemExit(f"missing existing {name}")
+                  prefix = base64.b64decode(existing["content"]).decode().strip()
+                  content = prefix + b.read_text().strip()
+              else:
+                  print("skip", name)
+                  continue
+              existing = api("GET", f"/contents/_pack_chunks/{name}?ref=main")
+              payload = {
+                  "message": f"Add {name} vale-home-keep pack slice.",
+                  "content": base64.b64encode(content.encode("ascii")).decode(),
+                  "branch": "main",
+              }
+              if existing and "sha" in existing:
+                  payload["sha"] = existing["sha"]
+              api("PUT", f"/contents/_pack_chunks/{name}", payload)
+              print("wrote", name, len(content))
+          PY
